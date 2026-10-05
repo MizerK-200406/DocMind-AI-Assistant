@@ -29,9 +29,7 @@ def _clean_json(raw: str) -> str:
         str: Chuỗi JSON tinh khiết đã được cắt tỉa.
     """
     raw = raw.strip()
-    # Xóa markdown code block ở đầu và cuối chuỗi nếu có
     raw = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw)
-    # Tìm vị trí bắt đầu và kết thúc của khối JSON { ... }
     start, end = raw.find("{"), raw.rfind("}")
     return raw[start:end + 1] if start != -1 and end != -1 else raw
 
@@ -87,7 +85,6 @@ def extract(
         except ValidationError as e:
             last_error = e
             logger.warning("[extract] Lần thử %d thất bại: %d lỗi xác thực schema", attempt + 1, e.error_count())
-            # Lưu lại câu trả lời lỗi của assistant và thêm lời nhắc sửa lỗi từ user
             messages.append({"role": "assistant", "content": raw})
             messages.append({
                 "role": "user",

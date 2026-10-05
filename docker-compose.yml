@@ -1,20 +1,15 @@
-# Tệp cấu hình Docker Compose điều phối dịch vụ DocMind
 services:
   api:
-    # Build image từ Dockerfile trong thư mục hiện tại (.)
     build: .
-    # Ánh xạ cổng: host_port:container_port (máy thật 8000 -> container 8000)
     ports:
       - "8000:8000"
-    # Tự động nạp các biến môi trường (như NVIDIA_API_KEY) từ file .env cục bộ
     env_file: .env
-    # Ghi đè hoặc chỉ định rõ biến môi trường đường dẫn DB
     environment:
       - DB_PATH=/data/docmind.db
-    # Gắn volume để bảo toàn dữ liệu SQLite bền vững ngay cả khi tắt/xóa container
+    # Gắn persistent volume bảo toàn dữ liệu SQLite khi container bị xóa hoặc build lại
     volumes:
       - docmind-data:/data
 
-# Khai báo volume được quản lý bởi Docker
 volumes:
   docmind-data:
+

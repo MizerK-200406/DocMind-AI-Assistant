@@ -27,23 +27,17 @@ from pydantic import BaseModel, Field
 from app import db, llm, structured
 from app.schemas import DocumentInfo
 
-# Cấu hình logging hệ thống
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("docmind")
 
-# Lời nhắc hệ thống mặc định cho trợ lý AI
 SYSTEM_PROMPT = "Bạn là trợ lý AI, trả lời bằng tiếng Việt, ngắn gọn và chính xác."
-# Giới hạn số lượng tin nhắn lịch sử tối đa gửi kèm vào ngữ cảnh (context window) của LLM
+# Giới hạn số tin nhắn lịch sử tối đa đưa vào context window của LLM
 MAX_HISTORY = 20
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Quản lý vòng đời (Lifespan) của ứng dụng FastAPI.
-    
-    - Khối lệnh trước `yield`: Thực thi khi server bắt đầu khởi động (khởi tạo schema database).
-    - Khối lệnh sau `yield`: Thực thi khi server chuẩn bị tắt (dọn dẹp tài nguyên nếu có).
-    """
+    """Quản lý vòng đời (Lifespan) của ứng dụng FastAPI."""
     db.init_db()
     yield
 
@@ -55,10 +49,6 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-
-# ==============================================================================
-# Bộ xử lý ngoại lệ (Exception Handlers) từ LLM
-# ==============================================================================
 
 @app.exception_handler(RateLimitError)
 async def rate_limit_handler(request: Request, exc: RateLimitError):
@@ -99,10 +89,6 @@ async def auth_handler(request: Request, exc: AuthenticationError):
     )
 
 
-# ==============================================================================
-# Schemas và Hàm tiền xử lý hội thoại
-# ==============================================================================
-
 class ChatRequest(BaseModel):
     """Lược đồ dữ liệu yêu cầu cho endpoint trò chuyện."""
     message: str = Field(min_length=1, max_length=4000, description="Nội dung tin nhắn người dùng gửi")
@@ -126,7 +112,7 @@ def prepare_conversation(req: ChatRequest) -> tuple[str, list[dict]]:
     else:
         conv_id = db.create_conversation()
 
-    # Lấy tối đa (MAX_HISTORY - 1) tin nhắn trong quá khứ để chừa chỗ cho tin nhắn user mới
+    # Dành 1 slot cho tin nhắn mới của người dùng trong context window
     history = db.get_messages(conv_id, limit=max(MAX_HISTORY - 1, 0))
     messages = (
         [{"role": "system", "content": SYSTEM_PROMPT}]
@@ -136,24 +122,12 @@ def prepare_conversation(req: ChatRequest) -> tuple[str, list[dict]]:
     return conv_id, messages
 
 
-# ==============================================================================
-# Endpoints API
-# ==============================================================================
-
 @app.post("/chat")
 def chat(req: ChatRequest):
-    """Endpoint trò chuyện tiêu chuẩn (Đồng bộ - Blocking).
-    
-    Quy trình:
-    1. Chuẩn bị ngữ cảnh hội thoại.
-    2. Gửi request sang LLM nhận toàn bộ câu trả lời.
-    3. Lưu đồng thời câu hỏi của user và câu trả lời của assistant vào DB trong 1 transaction an toàn.
-    4. Trả về câu trả lời cùng thông số token usage.
-    """
+    """Endpoint trò chuyện tiêu chuẩn (Đồng bộ - Blocking)."""
     conv_id, messages = prepare_conversation(req)
     resp = llm.chat_completion(messages, temperature=0.2)
     answer = resp.choices[0].message.content
-    # Lưu cặp user + assistant vào DB nguyên tử
     db.add_exchange(conv_id, req.message, answer)
     return {
         "conversation_id": conv_id,
@@ -164,29 +138,22 @@ def chat(req: ChatRequest):
 
 @app.post("/chat/stream")
 def chat_stream(req: ChatRequest):
-    """Endpoint trò chuyện truyền phát thời gian thực (Streaming qua Server-Sent Events).
-    
-    Cho phép hiển thị từng token chữ ngay khi mô hình tạo ra, tối ưu độ trễ cảm nhận của người dùng.
-    Sau khi truyền xong hoặc khi stream kết thúc, toàn bộ câu trả lời hoàn chỉnh sẽ được lưu vào DB.
-    """
+    """Endpoint trò chuyện truyền phát thời gian thực (Streaming qua Server-Sent Events)."""
     conv_id, messages = prepare_conversation(req)
 
     def event_generator():
         parts: list[str] = []
         try:
-            # Sự kiện đầu tiên: trả về conversation_id để client theo dõi
             yield f"data: {json.dumps({'conversation_id': conv_id})}\n\n"
             stream = llm.chat_completion(messages, temperature=0.2, stream=True)
             for chunk in stream:
                 if chunk.choices and chunk.choices[0].delta.content:
                     token = chunk.choices[0].delta.content
                     parts.append(token)
-                    # Gửi từng token về cho client
                     yield f"data: {json.dumps({'token': token}, ensure_ascii=False)}\n\n"
-            # Sự kiện kết thúc luồng dữ liệu
             yield "data: [DONE]\n\n"
         finally:
-            # Khối finally đảm bảo lưu lại nội dung đã stream ngay cả khi kết nối bị ngắt
+            # Lưu lại câu trả lời tích lũy ngay cả khi client ngắt kết nối giữa chừng
             if parts:
                 db.add_exchange(conv_id, req.message, "".join(parts))
 
