@@ -14,9 +14,10 @@ __pycache__/
 *$py.class
 *.so
 
-# Cơ sở dữ liệu SQLite cục bộ
+# Cơ sở dữ liệu SQLite cục bộ và Vector store
 *.db
 *.sqlite3
+chroma_data/
 
 # Cache của pytest và kiểm thử
 .pytest_cache/

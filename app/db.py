@@ -4,13 +4,14 @@ Cung cấp các hàm khởi tạo schema, quản lý phiên hội thoại (conve
 và lưu trữ lịch sử tin nhắn (messages) với cơ chế giao dịch an toàn (atomic transactions).
 """
 
-import os
 import sqlite3
 import uuid
 from contextlib import contextmanager
 
+from app.config import settings
+
 # Đường dẫn file SQLite: ưu tiên đọc từ biến môi trường DB_PATH (dùng cho Docker volume /data)
-DB_PATH = os.getenv("DB_PATH", "docmind.db")
+DB_PATH = settings.DB_PATH
 
 
 @contextmanager

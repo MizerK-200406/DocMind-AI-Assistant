@@ -1,0 +1,21 @@
+{"question": "Agent hiện đại = ?", "pages": ["12-14"], "type": "keyword"}
+{"question": "Harness là gì?", "pages": ["9", "19", "28-42"], "type": "keyword"}
+{"question": "ReAct là viết tắt của chu trình nào?", "pages": ["9", "22-27"], "type": "keyword"}
+{"question": "Prompt injection là gì?", "pages": ["10", "76-78"], "type": "keyword"}
+{"question": "Vibe coding là gì?", "pages": ["1", "10"], "type": "keyword"}
+{"question": "Sự khác biệt cơ bản giữa SFT và RL được trình bày ở phần nào?", "pages": ["299-301"], "type": "keyword"}
+{"question": "LLM-as-a-Judge là gì?", "pages": ["263-268"], "type": "keyword"}
+{"question": "Cơ chế nào giúp tái sử dụng phần prefix đã tính trong transformer?", "pages": ["10", "59-70"], "type": "keyword"}
+{"question": "Cơ chế nào cho phép AI gọi các hàm hoặc công cụ bên ngoài theo cấu trúc?", "pages": ["9", "16-18", "48-56", "138-164"], "type": "paraphrase"}
+{"question": "Thuật ngữ nào mô tả việc lưu tri thức vào cơ sở dữ liệu thay vì trọng số mô hình?", "pages": ["10", "19-20", "98-137"], "type": "paraphrase"}
+{"question": "Thành phần nào đóng vai trò như 'tay chân' của AI Agent trong việc tương tác với thế giới?", "pages": ["13-14", "16-18"], "type": "paraphrase"}
+{"question": "Phương pháp nào yêu cầu có sự tham gia của con người để xác nhận hoặc phê duyệt các hành động của AI?", "pages": ["10", "40-41"], "type": "paraphrase"}
+{"question": "Làm sao để hệ thống AI chủ động quyết định thời điểm và nội dung cần tìm kiếm thay vì tìm kiếm thụ động?", "pages": ["10", "127-130"], "type": "paraphrase"}
+{"question": "Để tối ưu chỉ dẫn ngôn ngữ tự nhiên cho mô hình, người ta dùng kỹ thuật gì?", "pages": ["9", "31", "71-77"], "type": "paraphrase"}
+{"question": "Có bao nhiêu định dạng lưu trữ cho bộ nhớ người dùng?", "pages": ["101-102"], "type": "numeric"}
+{"question": "Có bao nhiêu phương pháp tiến hóa liên tục của Agent được đề cập trong cuốn sách?", "pages": ["352-364"], "type": "numeric"}
+{"question": "Tôi là ai?", "pages": [], "type": "no_answer"}
+{"question": "Cách thiết lập cấu hình phần cứng GPU cluster để huấn luyện mô hình từ đầu?", "pages": [], "type": "no_answer"}
+{"question": "Mã nguồn chi tiết của thuật toán AlphaFold 3 được viết như thế nào?", "pages": [], "type": "no_answer"}
+{"question": "Thủ tục xin visa du lịch Mỹ B1/B2 gồm những bước nào?", "pages": [], "type": "no_answer"}
+{"question": "Đội tuyển nào vô địch World Cup 2022?", "pages": [], "type": "no_answer"}

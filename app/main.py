@@ -25,16 +25,16 @@ from openai import (
 from pydantic import BaseModel, Field
 
 from app import db, llm, structured
-from app.schemas import DocumentInfo
-
+from app.config import settings
 from app.rag import pipeline, store
+from app.schemas import DocumentInfo
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("docmind")
 
-SYSTEM_PROMPT = "Bạn là trợ lý AI, trả lời bằng tiếng Việt, ngắn gọn và chính xác."
+SYSTEM_PROMPT = settings.SYSTEM_PROMPT
 # Giới hạn số tin nhắn lịch sử tối đa đưa vào context window của LLM
-MAX_HISTORY = 20
+MAX_HISTORY = settings.MAX_HISTORY
 
 
 @asynccontextmanager

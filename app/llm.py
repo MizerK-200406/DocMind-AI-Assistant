@@ -6,9 +6,7 @@ Tích hợp cơ chế tự động thử lại (Retry) thông minh bằng thư v
 """
 
 import logging
-import os
 
-from dotenv import load_dotenv
 from openai import (
     APIConnectionError,
     APITimeoutError,
@@ -24,17 +22,18 @@ from tenacity import (
     wait_random_exponential,
 )
 
-load_dotenv()
+from app.config import settings
+
 logger = logging.getLogger("docmind.llm")
 
-MODEL = "deepseek-ai/deepseek-v4.1-flash"
-TIMEOUT_SECONDS = float(30)
-MAX_OUTPUT_TOKENS = 2048
+MODEL = settings.LLM_MODEL
+TIMEOUT_SECONDS = settings.LLM_TIMEOUT
+MAX_OUTPUT_TOKENS = settings.LLM_MAX_OUTPUT_TOKENS
 
 # Khởi tạo client tới NVIDIA NIM. Đặt max_retries=0 để nhường toàn quyền retry cho tenacity.
 client = OpenAI(
-    api_key=os.getenv("NVIDIA_API_KEY"),
-    base_url="https://integrate.api.nvidia.com/v1",
+    api_key=settings.NVIDIA_API_KEY,
+    base_url=settings.LLM_BASE_URL,
     timeout=TIMEOUT_SECONDS,
     max_retries=0,
 )

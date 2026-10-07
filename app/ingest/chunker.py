@@ -18,6 +18,7 @@ class Chunk:
     text: str
     source: str
     page: int
+    label: str
     index: int
 
 
@@ -79,7 +80,8 @@ def chunk_document(pages: list[Page], source: str, chunk_size: int = 1000, overl
     chunks: list[Chunk] = []
     for page in pages:
         for text in split_text(page.text, chunk_size, overlap):
-            chunks.append(Chunk(text=text, source=source, page=page.page_number, index=len(chunks)))
+            chunks.append(Chunk(text=text, source=source, page=page.page_number,
+                    label=page.label, index=len(chunks)))
     
     return chunks
 
