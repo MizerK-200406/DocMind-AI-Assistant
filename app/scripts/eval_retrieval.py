@@ -1,3 +1,15 @@
+"""Script đo lường và đánh giá chất lượng truy xuất (Retrieval Benchmark).
+
+Cách dùng:
+    python -m app.scripts.eval_retrieval "app/eval/questions.jsonl"
+
+Chỉ số đánh giá:
+- Hit@1: Tỷ lệ câu hỏi mà kết quả xếp hạng #1 nằm đúng trang chứa đáp án.
+- Hit@K: Tỷ lệ câu hỏi mà trang chứa đáp án nằm trong top-K kết quả.
+- MRR (Mean Reciprocal Rank): Điểm số trung bình dựa trên vị trí đảo ngược của kết quả đúng.
+- Threshold sweep: Quét các ngưỡng score để tìm điểm cân bằng giữa tỷ lệ trả lời và từ chối.
+"""
+
 import json
 import sys
 from collections import defaultdict

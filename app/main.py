@@ -6,6 +6,8 @@ Bao gồm các tính năng cốt lõi:
 - Endpoint POST /chat/stream: Truyền phát phản hồi theo thời gian thực qua Server-Sent Events (SSE).
 - Endpoint GET /conversations/{conv_id}: Truy vấn toàn bộ lịch sử tin nhắn của một cuộc hội thoại.
 - Endpoint POST /extract: Phân tích và trích xuất dữ liệu có cấu trúc từ văn bản theo Pydantic schema.
+- Endpoint POST /ask: Hỏi đáp RAG trên tài liệu đã nạp, kèm trích dẫn số trang và nguồn tham khảo.
+- Endpoint GET /documents: Liệt kê danh sách các tài liệu đã được nạp vào vector store.
 - Endpoint GET /health: Health-check endpoint phục vụ giám sát container và uptime.
 - Bộ Exception Handlers toàn diện: Bắt và chuẩn hóa các mã lỗi từ phía OpenAI/NVIDIA API.
 """
@@ -219,6 +221,11 @@ class AskResponse(BaseModel):
 
 @app.post("/ask", response_model=AskResponse)
 def ask(req: AskRequest):
+    """Hỏi đáp trên tài liệu dựa trên pipeline RAG.
+    
+    Hỗ trợ lọc theo tài liệu cụ thể thông qua trường `source`.
+    Trả về câu trả lời kèm danh sách các đoạn trích dẫn nguồn, số trang và điểm tin cậy.
+    """
     source = req.source or None
     if source and source not in store.list_sources():
         raise HTTPException(
@@ -227,6 +234,8 @@ def ask(req: AskRequest):
         )
     return pipeline.answer_question(req.question, k=req.top_k, source=source)
 
+
 @app.get("/documents")
 def list_documents():
+    """Liệt kê danh sách tất cả các tài liệu hiện có trong vector store."""
     return {"documents": store.list_sources()}

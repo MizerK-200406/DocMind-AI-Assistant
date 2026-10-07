@@ -1,3 +1,9 @@
+"""Công cụ dòng lệnh tìm kiếm ngữ nghĩa nhanh trong ChromaDB.
+
+Cách dùng:
+    python -m app.scripts.search "nội dung cần tìm"
+"""
+
 import sys
 
 from app.config import settings

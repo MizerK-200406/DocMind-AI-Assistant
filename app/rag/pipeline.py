@@ -1,9 +1,20 @@
+"""Module điều phối pipeline RAG (Retrieval-Augmented Generation).
+
+Luồng xử lý hỏi đáp trên tài liệu:
+1. Nhúng câu hỏi (Query Embedding) qua mô hình BGE-M3.
+2. Truy vấn top-k đoạn văn bản liên quan nhất từ vector store ChromaDB.
+3. Bộ lọc ngưỡng tương đồng (Guardrail): Nếu không có đoạn nào đạt MIN_SCORE,
+   lập tức từ chối trả lời mà không tốn chi phí gọi LLM (chống ảo giác / hallucination).
+4. Định dạng ngữ cảnh (Context Injection): Đánh số thứ tự các đoạn [1], [2] kèm nhãn trang.
+5. Tạo câu trả lời qua LLM và đính kèm danh sách nguồn trích dẫn (sources).
+"""
+
 from app import llm
 from app.config import settings
 from app.rag import embedder, store
 
 TOP_K = settings.RAG_TOP_K
-MIN_SCORE = settings.RAG_MIN_SCORE  # ngưỡng tạm, sẽ chỉnh theo dữ liệu
+MIN_SCORE = settings.RAG_MIN_SCORE  # ngưỡng tương đồng tối thiểu để đưa vào context
 NOT_FOUND = "Tôi không tìm thấy thông tin này trong tài liệu."
 
 RAG_SYSTEM_PROMPT = f"""Bạn là trợ lý trả lời câu hỏi dựa trên tài liệu được cung cấp.
@@ -16,12 +27,14 @@ Quy tắc:
 
 
 def build_context(hits: list[dict]) -> str:
+    """Ghép các đoạn trích dẫn thành chuỗi ngữ cảnh kèm đánh số thứ tự và nhãn trang."""
     return "\n\n".join(
         f"[{i}] (trang {h['page_label']})\n{h['text']}" for i, h in enumerate(hits, start=1)
     )
 
 
 def answer_question(question: str, k: int = TOP_K, source: str | None = None) -> dict:
+    """Thực thi toàn bộ quy trình RAG để trả lời câu hỏi dựa trên tài liệu."""
     vector = embedder.embed_texts([question])[0]
     hits = store.search(vector, k=k, source=source)
     relevant = [h for h in hits if h["score"] >= MIN_SCORE]
