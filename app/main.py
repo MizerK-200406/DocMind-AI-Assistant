@@ -27,6 +27,8 @@ from pydantic import BaseModel, Field
 from app import db, llm, structured
 from app.schemas import DocumentInfo
 
+from app.rag import pipeline, store
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("docmind")
 
@@ -193,3 +195,38 @@ def extract_document(req: ExtractRequest):
 def health():
     """Endpoint kiểm tra sức khỏe hệ thống (Health Check)."""
     return {"status": "OK"}
+
+
+class AskRequest(BaseModel):
+    question: str = Field(min_length=1, max_length=1000)
+    top_k: int = Field(default=5, ge=1, le=10)
+    source: str | None = None
+
+
+class SourceItem(BaseModel):
+    id: int
+    source: str
+    page: int
+    page_label: str
+    score: float
+    snippet: str
+
+
+class AskResponse(BaseModel):
+    answer: str
+    answered: bool
+    sources: list[SourceItem]
+
+@app.post("/ask", response_model=AskResponse)
+def ask(req: AskRequest):
+    source = req.source or None
+    if source and source not in store.list_sources():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Không có tài liệu '{source}'. Xem danh sách ở GET /documents.",
+        )
+    return pipeline.answer_question(req.question, k=req.top_k, source=source)
+
+@app.get("/documents")
+def list_documents():
+    return {"documents": store.list_sources()}
